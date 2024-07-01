@@ -23,7 +23,6 @@
 #include <QAction>
 
 #include "../Core/AirPods.h"
-#include "../Core/Update.h"
 #include "Base.h"
 #include "SettingsWindow.h"
 
@@ -56,7 +55,6 @@ public:
     void Unavailable();
     void Disconnect();
     void Unbind();
-    void VersionUpdateAvailable(const Core::Update::ReleaseInfo &releaseInfo);
 
 Q_SIGNALS:
     void OnTrayIconBatteryChangedSafely(Core::Settings::TrayIconBatteryBehavior value);
@@ -73,7 +71,6 @@ private:
     Status _status{Status::Unavailable};
     std::optional<Core::AirPods::State> _airPodsState;
     std::optional<QString> _displayName;
-    std::optional<Core::Update::ReleaseInfo> _updateReleaseInfo;
 
     void ShowMainWindow();
     void Repaint();

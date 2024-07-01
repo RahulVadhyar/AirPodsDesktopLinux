@@ -24,7 +24,7 @@
 #include <magic_enum.hpp>
 
 #include <Config.h>
-#include "../Logger.h"
+// #include "../Logger.h"
 #include "../Application.h"
 #include "GlobalMedia.h"
 #include "LowAudioLatency.h"
@@ -41,7 +41,7 @@ std::string_view LogSensitiveData(const T &value)
 
 void OnApply_language_locale(const Fields &newFields)
 {
-    LOG(Info, "OnApply_language_locale: {}", newFields.language_locale);
+    // LOG(Info, "OnApply_language_locale: {}", newFields.language_locale);
 
     ApdApp->SetTranslatorSafely(
         newFields.language_locale.isEmpty() ? QLocale{} : QLocale{newFields.language_locale});
@@ -49,12 +49,33 @@ void OnApply_language_locale(const Fields &newFields)
 
 void OnApply_auto_run(const Fields &newFields)
 {
-    LOG(Info, "OnApply_auto_run: {}", newFields.auto_run);
+    // LOG(Info, "OnApply_auto_run: {}", newFields.auto_run);
 
 #if !defined APD_OS_WIN
-    #error "Need to port."
-#endif
+    QString autostartPath = QDir::homePath() + "/.config/autostart/";
+    QString desktopFileName = autostartPath + Config::ProgramName + ".desktop";
+    QFile desktopFile(desktopFileName);
 
+    if (auto_run) {
+        // Ensure the autostart directory exists
+        QDir().mkpath(autostartPath);
+
+        if (desktopFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            QTextStream out(&desktopFile);
+            out << "[Desktop Entry]\n";
+            out << "Type=Application\n";
+            out << "Exec=" << QDir::toNativeSeparators(ApdApplication::applicationFilePath()) << "\n";
+            out << "Hidden=false\n";
+            out << "NoDisplay=false\n";
+            out << "Name=" << Config::ProgramName << "\n";
+            desktopFile.close();
+        }
+    } else {
+        if (desktopFile.exists()) {
+            desktopFile.remove();
+        }
+    }
+#else
     QSettings regAutoRun{
         "HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
         QSettings::Registry64Format};
@@ -66,18 +87,19 @@ void OnApply_auto_run(const Fields &newFields)
     else {
         regAutoRun.remove(Config::ProgramName);
     }
+#endif
 }
 
 void OnApply_low_audio_latency(const Fields &newFields)
 {
-    LOG(Info, "OnApply_low_audio_latency: {}", newFields.low_audio_latency);
+    // LOG(Info, "OnApply_low_audio_latency: {}", newFields.low_audio_latency);
 
     ApdApp->GetLowAudioLatencyController()->ControlSafely(newFields.low_audio_latency);
 }
 
 void OnApply_automatic_ear_detection(const Fields &newFields)
 {
-    LOG(Info, "OnApply_automatic_ear_detection: {}", newFields.automatic_ear_detection);
+    // LOG(Info, "OnApply_automatic_ear_detection: {}", newFields.automatic_ear_detection);
 
     ApdApp->GetMainWindow()->GetApdMgr().OnAutomaticEarDetectionChanged(
         newFields.automatic_ear_detection);
@@ -85,14 +107,14 @@ void OnApply_automatic_ear_detection(const Fields &newFields)
 
 void OnApply_rssi_min(const Fields &newFields)
 {
-    LOG(Info, "OnApply_rssi_min: {}", newFields.rssi_min);
+    // LOG(Info, "OnApply_rssi_min: {}", newFields.rssi_min);
 
     ApdApp->GetMainWindow()->GetApdMgr().OnRssiMinChanged(newFields.rssi_min);
 }
 
 void OnApply_device_address(const Fields &newFields)
 {
-    LOG(Info, "OnApply_device_address: {}", LogSensitiveData(newFields.device_address));
+    // LOG(Info, "OnApply_device_address: {}", LogSensitiveData(newFields.device_address));
 
     if (newFields.device_address == 0) {
         ApdApp->GetMainWindow()->UnbindSafely();
@@ -106,16 +128,16 @@ void OnApply_device_address(const Fields &newFields)
 
 void OnApply_tray_icon_battery(const Fields &newFields)
 {
-    LOG(Info, "OnApply_tray_icon_battery: {}", newFields.tray_icon_battery);
+    // LOG(Info, "OnApply_tray_icon_battery: {}", newFields.tray_icon_battery);
 
     ApdApp->GetTrayIcon()->OnTrayIconBatteryChangedSafely(newFields.tray_icon_battery);
 }
 
 void OnApply_battery_on_taskbar(const Fields &newFields)
 {
-    LOG(Info, "OnApply_battery_on_taskbar: {}", newFields.battery_on_taskbar);
+    // LOG(Info, "OnApply_battery_on_taskbar: {}", newFields.battery_on_taskbar);
 
-    ApdApp->GetTaskbarStatus()->OnSettingsChangedSafely(newFields.battery_on_taskbar);
+    // ApdApp->GetTaskbarStatus()->OnSettingsChangedSafely(newFields.battery_on_taskbar);
 }
 
 class Manager : public Helper::Singleton<Manager>
@@ -136,11 +158,11 @@ public:
             QString qstrKeyName = QString::fromStdString(std::string{keyName});
             if (!_settings.contains(qstrKeyName)) {
                 if (!isSensitive) {
-                    LOG(Warn, "The setting key '{}' not found. Current value '{}'.", keyName,
+                    // LOG(Warn, "The setting key '{}' not found. Current value '{}'.", keyName,
                         value);
                 }
                 else {
-                    LOG(Warn, "The setting key '{}' not found. Current value '{}'.", keyName,
+                    // LOG(Warn, "The setting key '{}' not found. Current value '{}'.", keyName,
                         LogSensitiveData(value));
                 }
                 return false;
@@ -149,7 +171,7 @@ public:
             QVariant var = _settings.value(qstrKeyName);
             if (!var.canConvert<ValueStorageType>() ||
                 !var.convert(qMetaTypeId<ValueStorageType>())) {
-                LOG(Warn, "The value of the key '{}' cannot be convert.", keyName);
+                // LOG(Warn, "The value of the key '{}' cannot be convert.", keyName);
                 return false;
             }
 
@@ -160,17 +182,17 @@ public:
                 auto optValue =
                     magic_enum::enum_cast<ValueType>(var.value<ValueStorageType>().toStdString());
                 if (!optValue.has_value()) {
-                    LOG(Warn, "enum_cast the value of the key '{}' failed.", keyName);
+                    // LOG(Warn, "enum_cast the value of the key '{}' failed.", keyName);
                     return false;
                 }
                 value = optValue.value();
             }
 
             if (!isSensitive) {
-                LOG(Info, "Load key succeeded. Key: '{}', Value: '{}'", keyName, value);
+                // LOG(Info, "Load key succeeded. Key: '{}', Value: '{}'", keyName, value);
             }
             else {
-                LOG(Info, "Load key succeeded. Key: '{}', Value: '{}'", keyName,
+                // LOG(Info, "Load key succeeded. Key: '{}', Value: '{}'", keyName,
                     LogSensitiveData(value));
             }
             return true;
@@ -180,13 +202,13 @@ public:
 
         std::decay_t<decltype(kFieldsAbiVersion)> abi_version = 0;
         if (!loadKey("abi_version", abi_version)) {
-            LOG(Warn, "No abi_version key. Load default settings.");
+            // LOG(Warn, "No abi_version key. Load default settings.");
             _fields = Fields{};
             return LoadResult::NoAbiField;
         }
         else {
             if (abi_version != kFieldsAbiVersion) {
-                LOG(Warn, "The settings abi version is incompatible. Local: '{}', Expect: '{}'",
+                // LOG(Warn, "The settings abi version is incompatible. Local: '{}', Expect: '{}'",
                     abi_version, kFieldsAbiVersion);
                 return LoadResult::AbiIncompatible;
             }
@@ -247,7 +269,7 @@ private:
 
             if (isDeprecated) {
                 _settings.remove(qstrKeyName);
-                LOG(Info, "Remove deprecated key succeeded. Key: '{}'", keyName);
+                // LOG(Info, "Remove deprecated key succeeded. Key: '{}'", keyName);
                 return;
             }
 
@@ -260,10 +282,10 @@ private:
             }
 
             if (!isSensitive) {
-                LOG(Info, "Save key succeeded. Key: '{}', Value: {}", keyName, value);
+                // LOG(Info, "Save key succeeded. Key: '{}', Value: {}", keyName, value);
             }
             else {
-                LOG(Info, "Save key succeeded. Key: '{}', Value: {}", keyName,
+                // LOG(Info, "Save key succeeded. Key: '{}', Value: {}", keyName,
                     LogSensitiveData(value));
             }
         };
@@ -279,7 +301,7 @@ private:
 
     void ApplyWithoutLock()
     {
-        LOG(Info, "ApplyWithoutLock");
+        // LOG(Info, "ApplyWithoutLock");
 
         pfr::for_each_field(_fieldsMeta, [&](const auto &fieldMeta) {
             fieldMeta.OnApply().Invoke(std::cref(_fields));
@@ -288,11 +310,11 @@ private:
 
     void ApplyChangedFieldsOnlyWithoutLock(const Fields &oldFields)
     {
-        LOG(Info, "ApplyChangedFieldsOnlyWithoutLock");
+        // LOG(Info, "ApplyChangedFieldsOnlyWithoutLock");
 
         pfr::for_each_field(_fieldsMeta, [&](const auto &fieldMeta) {
             if (fieldMeta.GetValue(oldFields) != fieldMeta.GetValue(_fields)) {
-                LOG(Info, "Changed field: {}", fieldMeta.GetName());
+                // LOG(Info, "Changed field: {}", fieldMeta.GetName());
                 fieldMeta.OnApply().Invoke(std::cref(_fields));
             }
         });

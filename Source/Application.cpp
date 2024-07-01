@@ -21,12 +21,11 @@
 #include <QMessageBox>
 
 #include <Config.h>
-#include "Logger.h"
+// #include "Logger.h"
 #include "Error.h"
 #include "Core/Bluetooth.h"
 #include "Core/GlobalMedia.h"
 #include "Core/Settings.h"
-#include "Core/Update.h"
 
 void ApdApplication::PreConstruction()
 {
@@ -116,21 +115,19 @@ bool ApdApplication::Prepare(int argc, char *argv[])
 
     const auto &opts = _launchOptsMgr.Parse(argc, argv);
 
-    Logger::Initialize(opts.enableTrace);
+    // Logger::Initialize(opts.enableTrace);
 
-    LOG(Info, "Launched. Version: '{}'", Config::Version::String);
+    // LOG(Info, "Launched. Version: '{}'", Config::Version::String);
 #if defined APD_BUILD_GIT_HASH
-    LOG(Info, "Build git hash: '{}'", APD_BUILD_GIT_HASH);
+    // LOG(Info, "Build git hash: '{}'", APD_BUILD_GIT_HASH);
 #endif
 #if defined APD_DEBUG
-    LOG(Info, "Build configuration: Debug");
+    // LOG(Info, "Build configuration: Debug");
 #else
-    LOG(Info, "Build configuration: Not Debug");
+    // LOG(Info, "Build configuration: Not Debug");
 #endif
 
-    LOG(Info, "Opts: {}", opts);
-
-    Logger::CleanUpOldLogFiles();
+    // LOG(Info, "Opts: {}", opts);
 
     QFont font;
     font.setFamily("Segoe UI");
@@ -153,7 +150,9 @@ bool ApdApplication::Prepare(int argc, char *argv[])
     InitTranslator();
 
     _trayIcon = std::make_unique<Gui::TrayIcon>();
+#if defined APD_HAS_TASKBAR_STATUS
     _taskbarStatus = std::make_unique<Gui::TaskbarStatus>();
+#endif
     _mainWindow = std::make_unique<Gui::MainWindow>();
     _lowAudioLatencyController = std::make_unique<Core::LowAudioLatency::Controller>();
 
@@ -179,7 +178,7 @@ const QVector<QLocale> &ApdApplication::AvailableLocales()
             QLocale locale{localName};
 
             if (locale.language() == QLocale::C) {
-                LOG(Warn, "Possibly invalid locale name '{}', ignore", localName);
+                // LOG(Warn, "Possibly invalid locale name '{}', ignore", localName);
                 continue;
             }
 
@@ -196,10 +195,10 @@ void ApdApplication::SetTranslator(const QLocale &locale)
 {
     const auto localeName = locale.name();
 
-    LOG(Info, "SetTranslator() locale: {}", localeName);
+    // LOG(Info, "SetTranslator() locale: {}", localeName);
 
     if (locale.language() == QLocale::C) {
-        LOG(Warn, "Try to set a possibly invalid locale name '{}', ignore", localeName);
+        // LOG(Warn, "Try to set a possibly invalid locale name '{}', ignore", localeName);
         return;
     }
 
@@ -214,12 +213,12 @@ void ApdApplication::SetTranslator(const QLocale &locale)
     }
 
     if (index == -1) {
-        LOG(Warn, "Try to set a untranslated language. locale name '{}', ignore", localeName);
+        // LOG(Warn, "Try to set a untranslated language. locale name '{}', ignore", localeName);
         return;
     }
 
     if (_currentLoadedLocaleIndex == index) {
-        LOG(Warn, "Try to set a same locale name '{}', ignore", localeName);
+        // LOG(Warn, "Try to set a same locale name '{}', ignore", localeName);
         return;
     }
 
@@ -234,11 +233,11 @@ void ApdApplication::SetTranslator(const QLocale &locale)
 
 void ApdApplication::InitTranslator()
 {
-    LOG(Info, "currentLocale: {}", QLocale{}.name());
+    // LOG(Info, "currentLocale: {}", QLocale{}.name());
 
     const auto &localeFromSettings = Core::Settings::GetCurrent().language_locale;
 
-    LOG(Info, "Locale from settings: '{}'", localeFromSettings);
+    // LOG(Info, "Locale from settings: '{}'", localeFromSettings);
 
     SetTranslator(localeFromSettings.isEmpty() ? QLocale{} : QLocale{localeFromSettings});
 }

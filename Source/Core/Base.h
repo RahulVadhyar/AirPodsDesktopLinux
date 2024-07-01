@@ -21,7 +21,7 @@
 #include <optional>
 
 #include "../Helper.h"
-#include "../Logger.h"
+// #include "../Logger.h"
 
 namespace Core::AirPods {
 
@@ -43,7 +43,7 @@ public:
     inline ValueType Value() const
     {
         if (!_optValue.has_value()) {
-            LOG(Warn, "Trying to get the battery value but unavailable.");
+            // LOG(Warn, "Trying to get the battery value but unavailable.");
             return 0;
         }
         return _optValue.value();
@@ -52,7 +52,7 @@ public:
     inline bool IsLowBattery() const
     {
         if (!_optValue.has_value()) {
-            LOG(Warn, "Trying to determine that the battery is low but unavailable.");
+            // LOG(Warn, "Trying to determine that the battery is low but unavailable.");
             return false;
         }
         return _optValue.value() <= 20;

@@ -145,55 +145,10 @@ private:
     }
 };
 
-//////////////////////////////////////////////////
-
-enum class NewVersionAction {
-    Update,
-    Skip,
-    Later,
-};
-
-NewVersionAction NewVersionMessageBox(
-    QWidget *parent, const QString &title, const QString &text,
-    const Core::Update::ReleaseInfo &releaseInfo)
-{
-    QMessageBox msgBox{QMessageBox::Question, title, text, QMessageBox::NoButton, parent};
-
-    const auto buttonUpdate = msgBox.addButton(QMessageBox::tr("Update now"), QMessageBox::YesRole);
-    const auto buttonSkip =
-        msgBox.addButton(QMessageBox::tr("Skip this version"), QMessageBox::AcceptRole);
-    const auto buttonView = msgBox.addButton(QMessageBox::tr("View release"), QMessageBox::NoRole);
-    const auto buttonLater =
-        msgBox.addButton(QMessageBox::tr("Remind me later"), QMessageBox::NoRole);
-
-    msgBox.setDefaultButton(buttonUpdate);
-
-    buttonView->disconnect();
-    msgBox.connect(buttonView, &QPushButton::clicked, &msgBox, [&] { releaseInfo.OpenUrl(); });
-
-    if (msgBox.exec() == -1) {
-        return NewVersionAction::Later;
-    }
-
-    const auto clickedButton = msgBox.clickedButton();
-
-    if (clickedButton == buttonUpdate) {
-        return NewVersionAction::Update;
-    }
-    else if (clickedButton == buttonSkip) {
-        return NewVersionAction::Skip;
-    }
-    else {
-        return NewVersionAction::Later;
-    }
-}
-
-//////////////////////////////////////////////////
 
 MainWindow::MainWindow(QWidget *parent) : QDialog{parent}
 {
     qRegisterMetaType<Core::AirPods::State>("Core::AirPods::State");
-    qRegisterMetaType<Core::Update::ReleaseInfo>("Core::Update::ReleaseInfo");
 
     _videoWidget = new VideoWidget{this};
     _closeButton = new CloseButton{this};
@@ -224,8 +179,6 @@ MainWindow::MainWindow(QWidget *parent) : QDialog{parent}
     connect(this, &MainWindow::UnbindSafely, this, &MainWindow::Unbind);
     connect(this, &MainWindow::ShowSafely, this, &MainWindow::show);
     connect(this, &MainWindow::HideSafely, this, &MainWindow::DoHide);
-    connect(
-        this, &MainWindow::VersionUpdateAvailableSafely, this, &MainWindow::VersionUpdateAvailable);
 
     _posAnimation.setDuration(500);
     _autoHideTimer->callOnTimeout([this] { DoHide(); });
@@ -248,18 +201,21 @@ MainWindow::MainWindow(QWidget *parent) : QDialog{parent}
 
 void MainWindow::UpdateState(const Core::AirPods::State &state)
 {
-    LOG(Info, "MainWindow::UpdateState");
+    // LOG(Info, "MainWindow::UpdateState");
 
     _status = Status::Updating;
     _cachedState = state;
     Repaint();
     ApdApp->GetTrayIcon()->UpdateState(state);
+#if APD_HAS_TASKBAR_STATUS
     ApdApp->GetTaskbarStatus()->UpdateState(state);
+#endif
+
 }
 
 void MainWindow::Available()
 {
-    LOG(Info, "MainWindow::Available");
+    // LOG(Info, "MainWindow::Available");
 
     if (_status != Status::Unavailable) {
         return;
@@ -270,18 +226,20 @@ void MainWindow::Available()
 
 void MainWindow::Unavailable()
 {
-    LOG(Info, "MainWindow::Unavailable");
+    // LOG(Info, "MainWindow::Unavailable");
 
     _status = Status::Unavailable;
     _cachedState.reset();
     Repaint();
     ApdApp->GetTrayIcon()->Unavailable();
+#if APD_HAS_TASKBAR_STATUS
     ApdApp->GetTaskbarStatus()->Unavailable();
+#endif
 }
 
 void MainWindow::Disconnect()
 {
-    LOG(Info, "MainWindow::Disconnect");
+    // LOG(Info, "MainWindow::Disconnect");
 
     if (_status == Status::Unbind) {
         return;
@@ -290,12 +248,14 @@ void MainWindow::Disconnect()
     _cachedState.reset();
     Repaint();
     ApdApp->GetTrayIcon()->Disconnect();
+    #if APD_HAS_TASKBAR_STATUS
     ApdApp->GetTaskbarStatus()->Disconnect();
+    #endif
 }
 
 void MainWindow::Bind()
 {
-    LOG(Info, "MainWindow::Bind");
+    // LOG(Info, "MainWindow::Bind");
 
     _status = Status::Bind;
     Disconnect();
@@ -303,68 +263,12 @@ void MainWindow::Bind()
 
 void MainWindow::Unbind()
 {
-    LOG(Info, "MainWindow::Unbind");
+    // LOG(Info, "MainWindow::Unbind");
 
     _status = Status::Unbind;
     _cachedState.reset();
     Repaint();
     ApdApp->GetTrayIcon()->Unbind();
-}
-
-void MainWindow::AskUserUpdate(const Core::Update::ReleaseInfo &releaseInfo)
-{
-    auto releaseVersion = releaseInfo.version.toString();
-
-    QString changeLogBlock;
-    if (!releaseInfo.changeLog.isEmpty()) {
-        changeLogBlock = QString{"\n\n%1\n%2"}.arg(tr("Change log:")).arg(releaseInfo.changeLog);
-    }
-
-    auto action = NewVersionMessageBox(
-        nullptr, Config::ProgramName,
-        tr("Hey! I found a new version available!\n"
-           "\n"
-           "Current version: %1\n"
-           "Latest version: %2"
-           "%3")
-            .arg(Core::Update::GetLocalVersion().toString())
-            .arg(releaseVersion)
-            .arg(changeLogBlock),
-        releaseInfo);
-
-    switch (action) {
-    case Gui::NewVersionAction::Update:
-        LOG(Info, "VersionUpdate: User clicked Update.");
-
-        if (!releaseInfo.CanAutoUpdate()) {
-            LOG(Info, "VersionUpdate: Cannot auto update. Popup latest url and quit.");
-            releaseInfo.OpenUrl();
-        }
-        else {
-            Gui::DownloadWindow{releaseInfo}.exec();
-        }
-
-        ApdApplication::QuitSafely();
-        return;
-
-    case Gui::NewVersionAction::Skip:
-        LOG(Info, "VersionUpdate: User clicked Skip.");
-
-        Core::Settings::ModifiableAccess()->skipped_version = releaseVersion;
-
-        // Continue checking for new versions after the skipped version
-        break;
-
-    case Gui::NewVersionAction::Later:
-        LOG(Info, "VersionUpdate: User clicked Later.");
-
-        _updateChecker.Stop();
-        break;
-
-    default:
-        LOG(Warn, "VersionUpdate: Unhandled user clicked button.");
-        break;
-    }
 }
 
 void MainWindow::ChangeButtonAction(ButtonAction action)
@@ -474,7 +378,7 @@ void MainWindow::StopAnimation()
 
 void MainWindow::BindDevice()
 {
-    LOG(Info, "BindDevice");
+    // LOG(Info, "BindDevice");
 
     const auto devices = Core::AirPods::GetDevices();
     if (devices.empty()) {
@@ -492,20 +396,20 @@ void MainWindow::BindDevice()
         for (const auto &device : devices) {
             auto deviceName = device.GetName();
 
-            LOG(Trace, "Device name: '{}'", deviceName);
-            LOG(Trace, "GetProductId: '{}' GetVendorId: '{}'", device.GetProductId(),
+            // LOG(Trace, "Device name: '{}'", deviceName);
+            // LOG(Trace, "GetProductId: '{}' GetVendorId: '{}'", device.GetProductId(),
                 device.GetVendorId());
             deviceNames.append(QString::fromStdString(deviceName));
         }
 
         SelectWindow selector{tr("Please select your AirPods device below."), deviceNames, this};
         if (selector.exec() == -1) {
-            LOG(Warn, "selector.exec() == -1");
+            // LOG(Warn, "selector.exec() == -1");
             return;
         }
 
         if (!selector.HasResult()) {
-            LOG(Info, "No result for selector.");
+            // LOG(Info, "No result for selector.");
             return;
         }
 
@@ -515,7 +419,7 @@ void MainWindow::BindDevice()
 
     const auto &selectedDevice = devices.at(selectedIndex);
 
-    LOG(Info, "Selected device index: '{}', device name: '{}'. Bound to this device.",
+    // LOG(Info, "Selected device index: '{}', device name: '{}'. Bound to this device.",
         selectedIndex, selectedDevice.GetName());
 
     Core::Settings::ModifiableAccess()->device_address = selectedDevice.GetAddress();
@@ -523,25 +427,13 @@ void MainWindow::BindDevice()
 
 void MainWindow::ControlAutoHideTimer(bool start)
 {
-    LOG(Trace, "ControlAutoHideTimer: start == '{}', _isVisible == '{}'", start, _isVisible);
+    // LOG(Trace, "ControlAutoHideTimer: start == '{}', _isVisible == '{}'", start, _isVisible);
 
     if (start && _isVisible) {
         _autoHideTimer->start(10s);
     }
     else {
         _autoHideTimer->stop();
-    }
-}
-
-void MainWindow::VersionUpdateAvailable(const Core::Update::ReleaseInfo &releaseInfo, bool silent)
-{
-    LOG(Info, "MainWindow::VersionUpdateAvailable: silent: `{}`", silent);
-
-    if (!silent) {
-        AskUserUpdate(releaseInfo);
-    }
-    else {
-        ApdApp->GetTrayIcon()->VersionUpdateAvailable(releaseInfo);
     }
 }
 
@@ -619,7 +511,7 @@ void MainWindow::Repaint()
 
 void MainWindow::OnAppStateChanged(Qt::ApplicationState state)
 {
-    LOG(Trace, "OnAppStateChanged: '{}'", Helper::ToString(state));
+    // LOG(Trace, "OnAppStateChanged: '{}'", Helper::ToString(state));
     ControlAutoHideTimer(state != Qt::ApplicationActive);
 }
 
@@ -652,7 +544,7 @@ void MainWindow::OnButtonClicked()
 {
     switch (_buttonAction) {
     case ButtonAction::Bind:
-        LOG(Info, "User clicked 'Bind'");
+        // LOG(Info, "User clicked 'Bind'");
         BindDevice();
         break;
 
@@ -672,7 +564,7 @@ void MainWindow::OnPlayerStateChanged(QMediaPlayer::State newState)
 
 void MainWindow::DoHide()
 {
-    LOG(Trace, "MainWindow: Hide");
+    // LOG(Trace, "MainWindow: Hide");
 
     if (!_isVisible) {
         return;
@@ -692,7 +584,7 @@ void MainWindow::DoHide()
 
 void MainWindow::showEvent(QShowEvent *event)
 {
-    LOG(Trace, "MainWindow: Show");
+    // LOG(Trace, "MainWindow: Show");
 
     if (_isVisible) {
         return;

@@ -61,19 +61,19 @@ std::optional<TaskBarInfo> GetTaskBarInfo()
     do {
         HWND hShellTrayWnd = FindWindowW(L"Shell_TrayWnd", nullptr);
         if (hShellTrayWnd == nullptr) {
-            LOG(Warn, "Find window 'Shell_TrayWnd' failed.");
+            // LOG(Warn, "Find window 'Shell_TrayWnd' failed.");
             break;
         }
 
         HWND hReBarWindow32 = FindWindowExW(hShellTrayWnd, nullptr, L"ReBarWindow32", nullptr);
         if (hReBarWindow32 == nullptr) {
-            LOG(Warn, "Find window 'ReBarWindow32' failed.");
-            break;
+            // LOG(Warn, "Find window 'ReBarWindow32' failed.");
+            // break;
         }
 
         HWND hMSTaskSwWClass = FindWindowExW(hReBarWindow32, nullptr, L"MSTaskSwWClass", nullptr);
         if (hMSTaskSwWClass == nullptr) {
-            LOG(Warn, "Find window 'MSTaskSwWClass' failed.");
+            // LOG(Warn, "Find window 'MSTaskSwWClass' failed.");
             break;
         }
 
@@ -81,24 +81,24 @@ std::optional<TaskBarInfo> GetTaskBarInfo()
             rectMSTaskSwWClassForParent{};
 
         if (!GetWindowRect(hShellTrayWnd, &rectShellTrayWnd)) {
-            LOG(Warn, "Failed to get the rect of window 'Shell_TrayWnd'.");
+            // LOG(Warn, "Failed to get the rect of window 'Shell_TrayWnd'.");
             break;
         }
 
         if (!GetWindowRect(hReBarWindow32, &rectReBarWindow32)) {
-            LOG(Warn, "Failed to get the rect of window 'ReBarWindow32'.");
+            // LOG(Warn, "Failed to get the rect of window 'ReBarWindow32'.");
             break;
         }
 
         if (!GetWindowRect(hMSTaskSwWClass, &rectMSTaskSwWClass)) {
-            LOG(Warn, "Failed to get the rect of window 'MSTaskSwWClass'.");
+            // LOG(Warn, "Failed to get the rect of window 'MSTaskSwWClass'.");
             break;
         }
 
         rectMSTaskSwWClassForParent = rectMSTaskSwWClass;
         if (MapWindowPoints(
                 HWND_DESKTOP, hReBarWindow32, (POINT *)&rectMSTaskSwWClassForParent, 2) == 0) {
-            LOG(Warn, "Failed to get the rect of the parent of window 'MSTaskSwWClass'.");
+            // LOG(Warn, "Failed to get the rect of the parent of window 'MSTaskSwWClass'.");
             break;
         }
 
@@ -130,7 +130,7 @@ TaskbarStatus::TaskbarStatus(QWidget *parent) : QDialog{parent}
     _ui.setupUi(this);
 
     _isWin11OrGreater = Core::OS::Windows::System::Is11OrGreater();
-    LOG(Info, "Is Windows 11 or greater: '{}'", _isWin11OrGreater);
+    // LOG(Info, "Is Windows 11 or greater: '{}'", _isWin11OrGreater);
 
     connect(this, &TaskbarStatus::OnSettingsChangedSafely, this, &TaskbarStatus::OnSettingsChanged);
 
@@ -207,7 +207,7 @@ bool TaskbarStatus::Enable()
 {
     const auto optInfo = GetTaskBarInfo();
     if (!optInfo.has_value()) {
-        LOG(Error, "Try to enable, but failed to `GetTaskBarInfo()`");
+        // LOG(Error, "Try to enable, but failed to `GetTaskBarInfo()`");
         return false;
     }
     const auto &info = optInfo.value();
@@ -226,7 +226,7 @@ bool TaskbarStatus::Disable()
 {
     const auto optInfo = GetTaskBarInfo();
     if (!optInfo.has_value()) {
-        LOG(Error, "Try to disable, but failed to `GetTaskBarInfo()`");
+        // LOG(Error, "Try to disable, but failed to `GetTaskBarInfo()`");
         return false;
     }
     const auto &info = optInfo.value();
@@ -239,7 +239,7 @@ bool TaskbarStatus::Disable()
 
 void TaskbarStatus::UpdatePos(const TaskBarInfo &info, bool enable)
 {
-    LOG(Trace, "The taskbar is '{}'", info.isHorizontal ? "horizontal" : "vertical");
+    // LOG(Trace, "The taskbar is '{}'", info.isHorizontal ? "horizontal" : "vertical");
 
     const auto &rectMSTaskSwWClass = info.rectMSTaskSwWClass;
     const auto &rectMSTaskSwWClassForParent = info.rectMSTaskSwWClassForParent;
@@ -409,7 +409,7 @@ void TaskbarStatus::OnUpdateTimer()
 {
     const auto optInfo = GetTaskBarInfo();
     if (!optInfo.has_value()) {
-        LOG(Trace, "Try to update, but failed to `GetTaskBarInfo()`");
+        // LOG(Trace, "Try to update, but failed to `GetTaskBarInfo()`");
         return;
     }
     const auto &info = optInfo.value();
@@ -425,7 +425,7 @@ void TaskbarStatus::OnUpdateTimer()
     }
 
     if (taskbarResized) {
-        LOG(Info, "Taskbar resized, status window need to update position");
+        // LOG(Info, "Taskbar resized, status window need to update position");
     }
 
     if (needToUpdate) {
@@ -468,7 +468,7 @@ void TaskbarStatus::mouseReleaseEvent(QMouseEvent *event)
     if (button == Qt::LeftButton) {
 #if defined APD_DEBUG
         _drawDebugBorder = !_drawDebugBorder;
-        LOG(Debug, "_drawDebugBorder: {}", _drawDebugBorder);
+        // LOG(Debug, "_drawDebugBorder: {}", _drawDebugBorder);
         repaint();
 #endif
         ApdApp->GetMainWindow()->show();

@@ -17,7 +17,7 @@
 //
 
 #include "AppleCP.h"
-
+#include <cstring>
 namespace Core::AppleCP {
 
 bool AirPods::IsValid(const std::vector<uint8_t> &data)

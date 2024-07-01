@@ -23,6 +23,12 @@
 #include <vector>
 #include <cwctype>
 #include <functional>
+#include <sys/file.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <errno.h>
+#include <string>
 
 #include <QDir>
 #include <QTimer>
@@ -36,11 +42,13 @@
 #include <QStandardPaths>
 
 #include "Helper.h"
-#include "Logger.h"
+// #include "Logger.h"
 #include "Error.h"
 
 #if defined APD_OS_WIN
     #include "Core/OS/Windows.h"
+#else
+    #include "Core/OS/linux.h"
 #endif
 
 namespace Utils {
@@ -121,14 +129,14 @@ inline void BreakPoint()
 {
 #if defined APD_DEBUG
     #if !defined APD_MSVC
-        #error "Need to port."
+        __builtin_trap();
     #endif
 
     #if defined APD_MSVC
     __debugbreak();
     #endif
 #else
-    LOG(Warn, "Triggered a break point.");
+    // LOG(Warn, "Triggered a break point.");
 #endif
 }
 } // namespace Debug
@@ -183,7 +191,7 @@ inline bool OpenFileLocation(const QDir &directory)
 #if defined APD_OS_WIN
     return Core::OS::Windows::File::OpenFileLocation(directory);
 #else
-    #error "Need to port."
+    return Core::OS::Linux::File::OpenFileLocation(directory);
 #endif
 }
 } // namespace File
@@ -196,8 +204,28 @@ namespace Process {
 inline bool SingleInstance(const QString &instanceName)
 {
 #if !defined APD_OS_WIN
-    #error "Need to port."
-#endif
+    std::string lockFilePath = "/tmp/" + instanceName.toStdString() + "_InstanceLock.lock";
+    int fd = open(lockFilePath.c_str(), O_RDWR | O_CREAT, 0666);
+    if (fd < 0) {
+        perror("open");
+        return false; // Cannot open lock file
+    }
+
+    if (flock(fd, LOCK_EX | LOCK_NB) == -1) {
+        if (errno == EWOULDBLOCK) {
+            // Another instance is running
+            close(fd);
+            return false;
+        }
+        perror("flock");
+        close(fd);
+        return false; // Other errors
+    }
+
+    // Lock acquired successfully, proceed with the program
+    // The lock will be automatically released when the program exits or the file descriptor is closed
+    return true;
+#else
     HANDLE mutex = CreateMutexW(
         nullptr, false, ("Global\\" + instanceName + "_InstanceMutex").toStdWString().c_str());
     uint32_t lastError = GetLastError();
@@ -209,6 +237,7 @@ inline bool SingleInstance(const QString &instanceName)
     // No need to close the handle
     //
     return lastError != ERROR_ALREADY_EXISTS;
+#endif
 }
 
 inline void AttachConsole()
@@ -216,7 +245,7 @@ inline void AttachConsole()
 #if defined APD_OS_WIN
     Core::OS::Windows::Process::AttachConsole();
 #else
-    #error "Need to port."
+    Core::OS::Linux::Process::AttachConsole();
 #endif
 }
 

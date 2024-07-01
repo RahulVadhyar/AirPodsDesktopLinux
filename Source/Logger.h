@@ -16,11 +16,10 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 
-#pragma once
-
+#ifdef BREAK_THIS
 #include <QDir>
 #include <QString>
-
+#define SPDLOG_FMT_EXTERNAL
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
 
@@ -73,7 +72,6 @@ bool Initialize(bool enableTrace);
 
 QDir GetLogFilePath();
 
-void CleanUpOldLogFiles();
 
 } // namespace Logger
 

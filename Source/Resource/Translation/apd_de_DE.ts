@@ -51,45 +51,7 @@ Genieße es.</translation>
     </message>
 </context>
 <context>
-    <name>DownloadWindow</name>
-    <message>
-        <source>Download new version</source>
-        <translation>Neue Version herunterladen</translation>
-    </message>
-    <message>
-        <source>Download Manually</source>
-        <translation>Manuell herunterladen</translation>
-    </message>
-    <message>
-        <source>If the download is slow or fails, you can:</source>
-        <translation>Sollte der Download langsam sein oder fehlschagen, kannst du:</translation>
-    </message>
-</context>
-<context>
-    <name>Gui::DownloadWindow</name>
-    <message>
-        <source>Oops, an error occurred during the automatic update.
-Please download and install the new version manually.</source>
-        <translation>Ups, während des automatischen Updates ist ein Fehler aufgetreten.
-Bitte lade das Update manuell und installiere es.</translation>
-    </message>
-</context>
-<context>
     <name>Gui::MainWindow</name>
-    <message>
-        <source>Change log:</source>
-        <translation>Änderungsprotokoll:</translation>
-    </message>
-    <message>
-        <source>Hey! I found a new version available!
-
-Current version: %1
-Latest version: %2%3</source>
-        <translation>Hey! Es gibt eine neue Version!
-
-Aktuelle Version: %1
-Neueste Version: %2%3</translation>
-    </message>
     <message>
         <source>Bind to AirPods</source>
         <translation>AirPods verbinden</translation>

@@ -82,13 +82,6 @@ void TrayIcon::Unbind()
     Repaint();
 }
 
-void TrayIcon::VersionUpdateAvailable(const Core::Update::ReleaseInfo &releaseInfo)
-{
-    _updateReleaseInfo = releaseInfo;
-    _actionNewVersion->setVisible(true);
-    Repaint();
-}
-
 void TrayIcon::ShowMainWindow()
 {
     ApdApp->GetMainWindow()->show();
@@ -158,10 +151,6 @@ void TrayIcon::Repaint()
         APD_ASSERT(false);
     }
 
-    if (_updateReleaseInfo.has_value()) {
-        toolTipContent += '\n' + _actionNewVersion->text();
-    }
-
     _tray->setToolTip("AirPodsDesktop\n" + toolTipContent.trimmed());
 
     // RepaintIcon
@@ -196,8 +185,7 @@ void TrayIcon::Repaint()
 
     auto optIcon = GenerateIcon(
         64, iconText,
-        _updateReleaseInfo.has_value() ? std::optional<QColor>{kNewVersionAvailableDot}
-                                       : std::nullopt);
+        std::nullopt);
     if (optIcon.has_value()) {
         _tray->setIcon(QIcon{QPixmap::fromImage(optIcon.value())});
     }
@@ -236,19 +224,19 @@ std::optional<QImage> TrayIcon::GenerateIcon(
                 if (currentHeight == desiredSize ||
                     lastHeight < desiredSize && currentHeight > desiredSize) [[unlikely]]
                 {
-                    LOG(Info,
-                        "Found a suitable font for the tray icon. "
-                        "Family: '{}', desiredSize: '{}', fontHeight: '{}', fontSize: '{}'",
-                        family, desiredSize, currentHeight, i);
+                    // LOG(Info,
+                    //     "Found a suitable font for the tray icon. "
+                    //     "Family: '{}', desiredSize: '{}', fontHeight: '{}', fontSize: '{}'",
+                    //     family, desiredSize, currentHeight, i);
                     return font;
                 }
                 lastHeight = currentHeight;
             }
 
-            LOG(Warn,
-                "Cannot find a suitable font for the tray icon. Family: '{}', desiredSize: "
-                "'{}'",
-                family, desiredSize);
+            // LOG(Warn,
+            //     "Cannot find a suitable font for the tray icon. Family: '{}', desiredSize: "
+            //     "'{}'",
+            //     family, desiredSize);
 
             return std::nullopt;
         };
@@ -302,19 +290,6 @@ std::optional<QImage> TrayIcon::GenerateIcon(
     painter.restore();
 
     return result;
-}
-
-void TrayIcon::OnNewVersionClicked()
-{
-    APD_ASSERT(_updateReleaseInfo.has_value());
-
-    _actionNewVersion->setVisible(false);
-
-    auto releaseInfo = std::move(_updateReleaseInfo.value());
-    _updateReleaseInfo.reset();
-    Repaint();
-
-    ApdApp->GetMainWindow()->AskUserUpdate(releaseInfo);
 }
 
 void TrayIcon::OnSettingsClicked()

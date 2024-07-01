@@ -51,45 +51,7 @@ Enjoy it all.</source>
     </message>
 </context>
 <context>
-    <name>DownloadWindow</name>
-    <message>
-        <source>Download new version</source>
-        <translation>Скачать новую версию</translation>
-    </message>
-    <message>
-        <source>Download Manually</source>
-        <translation>Скачать вручную</translation>
-    </message>
-    <message>
-        <source>If the download is slow or fails, you can:</source>
-        <translation>Если загрузка происходит медленно или с ошибками, вы можете:</translation>
-    </message>
-</context>
-<context>
-    <name>Gui::DownloadWindow</name>
-    <message>
-        <source>Oops, an error occurred during the automatic update.
-Please download and install the new version manually.</source>
-        <translation>Упс, во время автоматического обновления произошла ошибка.
-Пожалуйста, загрузите и установите новую версию вручную.</translation>
-    </message>
-</context>
-<context>
     <name>Gui::MainWindow</name>
-    <message>
-        <source>Change log:</source>
-        <translation>Список изменений:</translation>
-    </message>
-    <message>
-        <source>Hey! I found a new version available!
-
-Current version: %1
-Latest version: %2%3</source>
-        <translation>Найдена новая версия!
-
-Текущая версия:%1
-Последняя версия:%2%3</translation>
-    </message>
     <message>
         <source>Bind to AirPods</source>
         <translation>Привязка к AirPods</translation>

@@ -61,9 +61,10 @@ void Initialize()
     Error::Impl::WriteStackTraceFile();
 
 #if !defined APD_OS_WIN
-    #error "Need to port."
+    std::cerr << "AN error has occured, please check the log file for more information." << std::endl;
 #endif
 
+#if defined APD_OS_WIN
     // Because QMessageBox does not allow calls from non-GUI threads.
     // So far, there seems to be no better way than using native APIs.
     //
@@ -100,5 +101,6 @@ void Initialize()
     Utils::Debug::BreakPoint();
 #endif
 
+#endif // APD_OS_WIN
     std::abort();
 }

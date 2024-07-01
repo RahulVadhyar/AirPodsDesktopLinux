@@ -28,7 +28,6 @@ project(
 
 include(FetchContent)
 include(CMake/Utils.cmake)
-
 if(MSVC AND ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.20.4")
     #
     # Workaround
@@ -56,7 +55,7 @@ if(MSVC AND ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.20.4")
     set(CMAKE_CXX20_EXTENSION_COMPILE_OPTION "-std:c++latest")
 endif()
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_AUTOMOC ON)
@@ -64,7 +63,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 set(VCPKG_FEATURE_FLAGS "versions")
-
+set(CMAKE_CXX_FLAGS "-Wno-changes-meaning")
 ##################################################
 # Build options
 #
@@ -127,37 +126,48 @@ set(APD_QT_COMPONENTS Core Gui Widgets Svg Multimedia MultimediaWidgets)
 foreach (QT_COMPONENT ${APD_QT_COMPONENTS})
     set(APD_QT_LIBRARIES ${APD_QT_LIBRARIES} Qt5::${QT_COMPONENT})
 endforeach()
-find_package(Qt5 COMPONENTS ${APD_QT_COMPONENTS} REQUIRED)
+
+find_package(Qt5 5.15 COMPONENTS ${APD_QT_COMPONENTS} REQUIRED)
 find_package(Qt5LinguistTools REQUIRED)
+
+if(Qt5_FOUND)
+    # Print version information
+    message("Found Qt5 version: ${Qt5_VERSION}")
+else()
+    message(FATAL_ERROR "Qt5 not found. Please check your Qt5 installation.")
+endif()
+
 
 # spdlog
 #
+if (WIN32)
 add_compile_definitions(SPDLOG_WCHAR_TO_UTF8_SUPPORT SPDLOG_WCHAR_FILENAMES)
+endif()
 # 
 # TODO: Commented out since I don't how to enable `SPDLOG_WCHAR_FILENAMES` for vcpkg, I have tried
 #       `set(SPDLOG_WCHAR_FILENAMES ON)` and `add_compile_definitions(SPDLOG_WCHAR_FILENAMES)`,
 #       but still not working
 #
 # find_package(spdlog CONFIG)
-if (spdlog_FOUND)
-    message("Found 'spdlog' (${spdlog_VERSION}).")
-else()
-    message("Fetching 'spdlog'...")
-    FetchContent_Declare(
-        spdlog
-        GIT_REPOSITORY "https://github.com/gabime/spdlog.git"
-        GIT_TAG "100f30043f33277122e0991c83845a2617172ffd" # v1.8.5
-    )
-    FetchContent_MakeAvailable(spdlog)
-    message("Fetch 'spdlog' done.")
-endif()
+# if (spdlog_FOUND)
+    # message("Found 'spdlog' (${spdlog_VERSION}).")
+# else()
+    # message("Fetching 'spdlog'...")
+    # FetchContent_Declare(
+    #     spdlog
+    #     GIT_REPOSITORY "https://github.com/gabime/spdlog.git"
+    #     GIT_TAG "c3aed4b68373955e1cc94307683d44dca1515d2b" # v1.8.5
+    # )
+    # FetchContent_MakeAvailable(spdlog)
+    # message("Fetch 'spdlog' done.")
+# endif()
 
 # cxxopts
 #
-find_package(cxxopts CONFIG)
-if (cxxopts_FOUND)
-    message("Found 'cxxopts' (${cxxopts_VERSION}).")
-else()
+# find_package(cxxopts CONFIG)
+# if (cxxopts_FOUND)
+#     message("Found 'cxxopts' (${cxxopts_VERSION}).")
+# else()
     message("Fetching 'cxxopts'...")
     FetchContent_Declare(
         cxxopts
@@ -168,14 +178,14 @@ else()
     message("Fetch 'cxxopts' done.")
 
     add_library(cxxopts::cxxopts ALIAS cxxopts)
-endif()
+# endif()
 
 # cpr
 #
-find_package(cpr 1.7.2 CONFIG)
-if (cpr_FOUND)
-    message("Found 'cpr' (${cpr_VERSION}).")
-else()
+# find_package(cpr 1.7.2 CONFIG)
+# if (cpr_FOUND)
+#     message("Found 'cpr' (${cpr_VERSION}).")
+# else()
     set(CPR_BUILD_TESTS ${APD_BUILD_TESTS})
     set(CPR_BUILD_TESTS_SSL OFF)
     set(CURL_ZLIB OFF CACHE STRING "" FORCE)
@@ -187,14 +197,14 @@ else()
     )
     FetchContent_MakeAvailable(cpr)
     message("Fetch 'cpr' done.")
-endif()
+# endif()
 
 # json
 #
-find_package(nlohmann_json CONFIG)
-if (nlohmann_json_FOUND)
-    message("Found 'nlohmann_json' (${nlohmann_json_VERSION}).")
-else()
+# find_package(nlohmann_json CONFIG)
+# if (nlohmann_json_FOUND)
+#     message("Found 'nlohmann_json' (${nlohmann_json_VERSION}).")
+# else()
     message("Fetching 'nlohmann_json'...")
     FetchContent_Declare(
         nlohmann_json
@@ -203,7 +213,7 @@ else()
     )
     FetchContent_MakeAvailable(nlohmann_json)
     message("Fetch 'nlohmann_json' done.")
-endif()
+# endif()
 
 # SingleApplication
 #
@@ -219,10 +229,10 @@ message("Fetch 'SingleApplication' done.")
 
 # magic_enum
 #
-find_package(magic_enum CONFIG)
-if (magic_enum_FOUND)
-    message("Found 'magic_enum' (${magic_enum_VERSION}).")
-else()
+# find_package(magic_enum CONFIG)
+# if (magic_enum_FOUND)
+#     message("Found 'magic_enum' (${magic_enum_VERSION}).")
+# else()
     message("Fetching 'magic_enum'...")
     FetchContent_Declare(
         magic_enum
@@ -231,23 +241,36 @@ else()
     )
     FetchContent_MakeAvailable(magic_enum)
     message("Fetch 'magic_enum' done.")
-endif()
-
+# endif()
+find_package(fmt REQUIRED)
 #
 # Boost libraries
 #
 
 # stacktrace
 #
-if (MSVC)
+if (WIN32)
     set(APD_STACKTRACE_COMPONENT stacktrace_windbg)
+else()
+    set(APD_STACKTRACE_COMPONENT stacktrace_basic)
 endif()
 
 find_package(Boost REQUIRED COMPONENTS ${APD_STACKTRACE_COMPONENT})
 
 # pfr
 #
-add_library(Boost::pfr ALIAS Boost::boost)
+# if (WIN32)
+#     add_library(Boost::pfr ALIAS Boost::boost)
+# else()
+    message("Fetching 'pfr'...")
+    FetchContent_Declare(
+        pfr
+        GIT_REPOSITORY "https://github.com/boostorg/pfr.git"
+        GIT_TAG "10848f71aeb014382de1b8cfb9521838dcce9876" # v2.0.3 / boost-1.79.0.beta1
+    )
+    FetchContent_MakeAvailable(pfr)
+    message("Fetch 'pfr' done.")
+# endif()
 
 ##################################################
 
@@ -256,21 +279,18 @@ set(
 
     "Source/Main.cpp"
     "Source/Opts.cpp"
-    "Source/Logger.cpp"
+    # "Source/Logger.cpp"
     "Source/Assert.cpp"
     "Source/Error.cpp"
     "Source/Application.cpp"
 
     "Source/Gui/TrayIcon.cpp"
-    "Source/Gui/TaskbarStatus.cpp"
     "Source/Gui/MainWindow.cpp"
     "Source/Gui/SelectWindow.cpp"
-    "Source/Gui/DownloadWindow.cpp"
     "Source/Gui/SettingsWindow.cpp"
     "Source/Gui/Widget/Battery.cpp"
 
     "Source/Core/Debug.cpp"
-    "Source/Core/Update.cpp"
     "Source/Core/AirPods.cpp"
     "Source/Core/AppleCP.cpp"
     "Source/Core/Settings.cpp"
@@ -294,6 +314,7 @@ if (WIN32)
 
         "Source/Core/Bluetooth_win.cpp"
         "Source/Core/GlobalMedia_win.cpp"
+        "Source/Gui/TaskbarStatus.cpp"
 
         "Source/Resource/Resource.rc"
     )
@@ -306,6 +327,21 @@ if (WIN32)
     # Workaround for: "_MSC_VER" is undefined in .rc files
     #
     set_source_files_properties("Source/Resource/Resource.rc" PROPERTIES COMPILE_FLAGS "/d_MSC_VER")
+else()
+    set(
+        APD_COMPILE_DEFINITIONS ${APD_COMPILE_DEFINITIONS}
+
+        APD_OS_LINUX
+    )
+    set(
+        APD_CODE_FILES ${APD_CODE_FILES}
+
+        "Source/Core/Bluetooth_linux.cpp"
+        "Source/Core/GlobalMedia_linux.cpp"
+    )
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(DBUS REQUIRED dbus-1)
+    include_directories(${DBUS_INCLUDE_DIRS})
 endif()
 
 if (APD_BUILD_GIT_HASH)
@@ -381,7 +417,7 @@ target_compile_definitions(
     ${PROJECT_NAME} PRIVATE
 
     $<$<CONFIG:Debug>:APD_DEBUG>
-    SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE
+    SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_ERROR
     ${APD_COMPILE_DEFINITIONS}
 )
 
@@ -474,16 +510,18 @@ target_link_libraries(
     ${PROJECT_NAME}
     
     ${APD_QT_LIBRARIES}
-    spdlog::spdlog
+    # spdlog::spdlog
     cxxopts::cxxopts
-    cpr::cpr
     nlohmann_json::nlohmann_json
     SingleApplication::SingleApplication
     magic_enum::magic_enum
     Boost::pfr
     Boost::${APD_STACKTRACE_COMPONENT}
 )
-
+target_link_libraries(${PROJECT_NAME} STATIC cpr::cpr)
+if(UNIX)
+    target_link_libraries(${PROJECT_NAME} ${DBUS_LIBRARIES})
+endif()
 ##################################################
 
 #

@@ -51,44 +51,7 @@ Enjoy it all.</source>
     </message>
 </context>
 <context>
-    <name>DownloadWindow</name>
-    <message>
-        <source>Download new version</source>
-        <translation>새로운 버전 다운로드</translation>
-    </message>
-    <message>
-        <source>Download Manually</source>
-        <translation>수동 다운로드</translation>
-    </message>
-    <message>
-        <source>If the download is slow or fails, you can:</source>
-        <translation>다운로드 속도가 지연되거나, 실패하면 경우 다음과 같이 할 수 있습니다:</translation>
-    </message>
-</context>
-<context>
-    <name>Gui::DownloadWindow</name>
-    <message>
-        <source>Oops, an error occurred during the automatic update.
-Please download and install the new version manually.</source>
-        <translation>앗, 자동 업데이트 중에 오류가 발생했습니다.
-새 버전을 수동으로 내려받아 설치해주세요.</translation>
-    </message>
-</context>
-<context>
     <name>Gui::MainWindow</name>
-    <message>
-        <source>Change log:</source>
-        <translation>변경 로그:</translation>
-    </message>
-    <message>
-        <source>Hey! I found a new version available!
-
-Current version: %1
-Latest version: %2%3</source>
-        <translation>새로운 버전을 찾았습니다!
-현재버전 : %1
-최종버전 : %2%3</translation>
-    </message>
     <message>
         <source>Bind to AirPods</source>
         <translation>AirPods 연결</translation>

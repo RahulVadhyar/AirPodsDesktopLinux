@@ -22,7 +22,7 @@
 #include <optional>
 
 #include <cxxopts.hpp>
-#include <spdlog/fmt/ostr.h>
+// #include <spdlog/fmt/ostr.h>
 
 namespace Opts {
 

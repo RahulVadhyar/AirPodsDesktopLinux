@@ -20,7 +20,7 @@
 
 #include <QAudioDeviceInfo>
 
-#include "../Logger.h"
+// #include "../Logger.h"
 #include "../Application.h"
 
 namespace Core::LowAudioLatency {
@@ -48,7 +48,7 @@ bool Controller::Initialize()
     // Constructing `QMediaPlayer` when no audio output device is enabled will cause `play` to
     // continually raise errors and is unrecoverable.
     if (QAudioDeviceInfo::availableDevices(QAudio::AudioOutput).empty()) {
-        LOG(Warn, "LowAudioLatency: Try to init, but no audio output device is enabled.");
+        // LOG(Warn, "LowAudioLatency: Try to init, but no audio output device is enabled.");
         return false;
     }
 
@@ -65,7 +65,7 @@ bool Controller::Initialize()
 
     _inited = true;
 
-    LOG(Info, "LowAudioLatency: Init successful. _enabled: {}", _enabled);
+    // LOG(Info, "LowAudioLatency: Init successful. _enabled: {}", _enabled);
 
     if (_enabled) {
         Control(true);
@@ -76,7 +76,7 @@ bool Controller::Initialize()
 
 void Controller::Control(bool enable)
 {
-    LOG(Info, "LowAudioLatency::Controller Control: {}, _inited: {}", enable, _inited);
+    // LOG(Info, "LowAudioLatency::Controller Control: {}, _inited: {}", enable, _inited);
 
     if (_inited) {
         if (enable) {
@@ -92,7 +92,7 @@ void Controller::Control(bool enable)
 
 void Controller::OnError(QMediaPlayer::Error error)
 {
-    LOG(Warn, "LowAudioLatency::Controller error: {}. Reinit later.", error);
+    // LOG(Warn, "LowAudioLatency::Controller error: {}. Reinit later.", error);
 
     _mediaPlayer->stop();
     _inited = false;

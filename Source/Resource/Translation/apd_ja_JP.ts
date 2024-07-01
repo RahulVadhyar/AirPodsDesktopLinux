@@ -51,45 +51,7 @@ Enjoy it all.</source>
     </message>
 </context>
 <context>
-    <name>DownloadWindow</name>
-    <message>
-        <source>Download new version</source>
-        <translation>新しいバージョンをダウンロード</translation>
-    </message>
-    <message>
-        <source>Download Manually</source>
-        <translation>自分でダウンロード</translation>
-    </message>
-    <message>
-        <source>If the download is slow or fails, you can:</source>
-        <translation>ダウンロードが遅かったり失敗する場合、以下のことをお試しください:</translation>
-    </message>
-</context>
-<context>
-    <name>Gui::DownloadWindow</name>
-    <message>
-        <source>Oops, an error occurred during the automatic update.
-Please download and install the new version manually.</source>
-        <translation>おっと！自動更新中にエラーが起きてしまいました。
-お手数をおかけしますが、新しいバージョンを手動でダウンロードして、インストールしてください。</translation>
-    </message>
-</context>
-<context>
     <name>Gui::MainWindow</name>
-    <message>
-        <source>Change log:</source>
-        <translation>変更履歴:</translation>
-    </message>
-    <message>
-        <source>Hey! I found a new version available!
-
-Current version: %1
-Latest version: %2%3</source>
-        <translation>新しいバージョンが利用可能です。
-
-現在のバージョン: %1
-新しいバージョン: %2%3</translation>
-    </message>
     <message>
         <source>Bind to AirPods</source>
         <translation>AirPodsに結びつける</translation>

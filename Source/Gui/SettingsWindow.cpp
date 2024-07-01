@@ -408,7 +408,7 @@ void SettingsWindow::On_hsMaxReceivingRange_valueChanged(int value)
 
 void SettingsWindow::On_pbOpenLogsDirectory_clicked()
 {
-    Utils::File::OpenFileLocation(Logger::GetLogFilePath());
+    // Utils::File::OpenFileLocation(Logger::GetLogFilePath());
 }
 
 void SettingsWindow::On_cbAdvOverride_toggled(bool checked)

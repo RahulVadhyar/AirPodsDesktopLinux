@@ -27,7 +27,7 @@
 #include "Bluetooth.h"
 #include "GlobalMedia.h"
 #include "../Helper.h"
-#include "../Logger.h"
+// #include "../Logger.h"
 #include "../Assert.h"
 #include "../Application.h"
 #include "../Gui/MainWindow.h"
@@ -167,7 +167,7 @@ auto StateManager::OnAdvReceived(Advertisement adv) -> std::optional<UpdateEvent
     std::lock_guard<std::mutex> lock{_mutex};
 
     if (!IsPossibleDesiredAdv(adv)) {
-        LOG(Warn, "This adv may not be broadcast from the device we desire.");
+        // LOG(Warn, "This adv may not be broadcast from the device we desire.");
         return std::nullopt;
     }
 
@@ -179,7 +179,7 @@ void StateManager::Disconnect()
 {
     std::lock_guard<std::mutex> lock{_mutex};
 
-    LOG(Info, "StateManager: Disconnect.");
+    // LOG(Info, "StateManager: Disconnect.");
     ResetAll();
 }
 
@@ -193,10 +193,10 @@ bool StateManager::IsPossibleDesiredAdv(const Advertisement &adv) const
 {
     const auto advRssi = adv.GetRssi();
     if (advRssi < _rssiMin) {
-        LOG(Warn,
-            "IsPossibleDesiredAdv returns false. Reason: RSSI is less than the limit. "
-            "curr: '{}' min: '{}'",
-            advRssi, _rssiMin);
+        // LOG(Warn,
+        //     "IsPossibleDesiredAdv returns false. Reason: RSSI is less than the limit. "
+        //     "curr: '{}' min: '{}'",
+        //     advRssi, _rssiMin);
         return false;
     }
 
@@ -212,8 +212,8 @@ bool StateManager::IsPossibleDesiredAdv(const Advertisement &adv) const
         const auto &lastAdvState = lastAdv->first.GetAdvState();
 
         if (advState.model != lastAdvState.model) {
-            LOG(Warn, "IsPossibleDesiredAdv returns false. Reason: model new='{}' old='{}'",
-                Helper::ToString(advState.model), Helper::ToString(lastAdvState.model));
+            // LOG(Warn, "IsPossibleDesiredAdv returns false. Reason: model new='{}' old='{}'",
+            //     Helper::ToString(advState.model), Helper::ToString(lastAdvState.model));
             return false;
         }
 
@@ -242,27 +242,27 @@ bool StateManager::IsPossibleDesiredAdv(const Advertisement &adv) const
         // can not exceed 1, otherwise it is not our device
         //
         if (leftBatteryDiff > 1 || rightBatteryDiff > 1 || caseBatteryDiff > 1) {
-            LOG(Warn,
-                "IsPossibleDesiredAdv returns false. Reason: BatteryDiff l='{}' r='{}' c='{}'",
-                leftBatteryDiff, rightBatteryDiff, caseBatteryDiff);
+            // LOG(Warn,
+            //     "IsPossibleDesiredAdv returns false. Reason: BatteryDiff l='{}' r='{}' c='{}'",
+            //     leftBatteryDiff, rightBatteryDiff, caseBatteryDiff);
             return false;
         }
 
         int16_t rssiDiff = std::abs(advRssi - lastAdv->first.GetRssi());
         if (rssiDiff > 50) {
-            LOG(Warn, "IsPossibleDesiredAdv returns false. Reason: Current side rssiDiff '{}'",
-                rssiDiff);
+            // LOG(Warn, "IsPossibleDesiredAdv returns false. Reason: Current side rssiDiff '{}'",
+            //     rssiDiff);
             return false;
         }
 
-        LOG(Warn, "Address changed, but it might still be the same device.");
+        // LOG(Warn, "Address changed, but it might still be the same device.");
     }
 
     if (lastAnotherAdv.has_value()) {
         int16_t rssiDiff = std::abs(advRssi - lastAnotherAdv->first.GetRssi());
         if (rssiDiff > 50) {
-            LOG(Warn, "IsPossibleDesiredAdv returns false. Reason: Another side rssiDiff '{}'",
-                rssiDiff);
+            // LOG(Warn, "IsPossibleDesiredAdv returns false. Reason: Another side rssiDiff '{}'",
+            //     rssiDiff);
             return false;
         }
     }
@@ -346,7 +346,7 @@ void StateManager::ResetAll()
 void StateManager::DoLost()
 {
     if (_cachedState.has_value()) {
-        LOG(Info, "StateManager: Device is lost.");
+        // LOG(Info, "StateManager: Device is lost.");
     }
     ResetAll();
 }
@@ -355,7 +355,7 @@ void StateManager::DoStateReset(Side side)
 {
     auto &adv = side == Side::Left ? _adv.left : _adv.right;
     if (adv.has_value()) {
-        LOG(Info, "StateManager: DoStateReset called. Side: {}", Helper::ToString(side));
+        // LOG(Info, "StateManager: DoStateReset called. Side: {}", Helper::ToString(side));
         adv.reset();
     }
 }
@@ -381,20 +381,20 @@ Manager::Manager()
 void Manager::StartScanner()
 {
     if (!_adWatcher.Start()) {
-        LOG(Warn, "Bluetooth AdvWatcher start failed.");
+        // LOG(Warn, "Bluetooth AdvWatcher start failed.");
     }
     else {
-        LOG(Info, "Bluetooth AdvWatcher start succeeded.");
+        // LOG(Info, "Bluetooth AdvWatcher start succeeded.");
     }
 }
 
 void Manager::StopScanner()
 {
     if (!_adWatcher.Stop()) {
-        LOG(Warn, "AsyncScanner::Stop() failed.");
+        // LOG(Warn, "AsyncScanner::Stop() failed.");
     }
     else {
-        LOG(Info, "AsyncScanner::Stop() succeeded.");
+        // LOG(Info, "AsyncScanner::Stop() succeeded.");
     }
 }
 
@@ -421,17 +421,17 @@ void Manager::OnBoundDeviceAddressChanged(uint64_t address)
     // Unbind device
     //
     if (address == 0) {
-        LOG(Info, "Unbind device.");
+        // LOG(Info, "Unbind device.");
         return;
     }
 
     // Bind to a new device
     //
-    LOG(Info, "Bind a new device.");
+    // LOG(Info, "Bind a new device.");
 
     auto optDevice = Bluetooth::DeviceManager::FindDevice(address);
     if (!optDevice.has_value()) {
-        LOG(Error, "Find device by address failed.");
+        // LOG(Error, "Find device by address failed.");
         return;
     }
 
@@ -461,8 +461,8 @@ void Manager::OnBoundDeviceConnectionStateChanged(Bluetooth::DeviceState state)
         _stateMgr.Disconnect();
     }
 
-    LOG(Info, "The device we bound is updated. current: {}, new: {}", _deviceConnected,
-        newDeviceConnected);
+    // LOG(Info, "The device we bound is updated. current: {}, new: {}", _deviceConnected,
+    //     newDeviceConnected);
 }
 
 void Manager::OnStateChanged(Details::StateManager::UpdateEvent updateEvent)
@@ -515,7 +515,7 @@ void Manager::OnLidOpened(bool opened)
 void Manager::OnBothInEar(bool isBothInEar)
 {
     if (!_automaticEarDetection) {
-        LOG(Info, "automatic_ear_detection: Do nothing because it is disabled. ({})", isBothInEar);
+        // LOG(Info, "automatic_ear_detection: Do nothing because it is disabled. ({})", isBothInEar);
         return;
     }
 
@@ -535,11 +535,11 @@ bool Manager::OnAdvertisementReceived(const Bluetooth::AdvertisementWatcher::Rec
 
     Details::Advertisement adv{data};
 
-    LOG(Trace, "AirPods advertisement received. Data: {}, Address Hash: {}, RSSI: {}",
+    // LOG(Trace, "AirPods advertisement received. Data: {}, Address Hash: {}, RSSI: {}",
         Helper::ToString(adv.GetDesensitizedData()), Helper::Hash(data.address), data.rssi);
 
     if (!_deviceConnected) {
-        LOG(Info, "AirPods advertisement received, but device disconnected.");
+        // LOG(Info, "AirPods advertisement received, but device disconnected.");
         return false;
     }
 
@@ -556,12 +556,12 @@ void Manager::OnAdvWatcherStateChanged(
     switch (state) {
     case Core::Bluetooth::AdvertisementWatcher::State::Started:
         ApdApp->GetMainWindow()->AvailableSafely();
-        LOG(Info, "Bluetooth AdvWatcher started.");
+        // LOG(Info, "Bluetooth AdvWatcher started.");
         break;
 
     case Core::Bluetooth::AdvertisementWatcher::State::Stopped:
         ApdApp->GetMainWindow()->UnavailableSafely();
-        LOG(Warn, "Bluetooth AdvWatcher stopped. Error: '{}'.", optError.value_or("nullopt"));
+        // LOG(Warn, "Bluetooth AdvWatcher stopped. Error: '{}'.", optError.value_or("nullopt"));
         break;
 
     default:
@@ -574,7 +574,7 @@ std::vector<Bluetooth::Device> GetDevices()
     std::vector<Bluetooth::Device> devices =
         Bluetooth::DeviceManager::GetDevicesByState(Bluetooth::DeviceState::Paired);
 
-    LOG(Info, "Paired devices count: {}", devices.size());
+    // LOG(Info, "Paired devices count: {}", devices.size());
 
     devices.erase(
         std::remove_if(
@@ -587,14 +587,14 @@ std::vector<Bluetooth::Device> GetDevices()
                     vendorId != AppleCP::VendorId ||
                     AppleCP::AirPods::GetModel(productId) == AirPods::Model::Unknown;
 
-                LOG(Trace, "Device VendorId: '{}', ProductId: '{}', doErase: {}", vendorId,
-                    productId, doErase);
+                // LOG(Trace, "Device VendorId: '{}', ProductId: '{}', doErase: {}", vendorId,
+                    // productId, doErase);
 
                 return doErase;
             }),
         devices.end());
 
-    LOG(Info, "AirPods devices count: {} (filtered)", devices.size());
+    // LOG(Info, "AirPods devices count: {} (filtered)", devices.size());
     return devices;
 }
 

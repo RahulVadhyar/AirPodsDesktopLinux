@@ -51,45 +51,7 @@ Enjoy it all.</source>
     </message>
 </context>
 <context>
-    <name>DownloadWindow</name>
-    <message>
-        <source>Download new version</source>
-        <translation>下载新版本</translation>
-    </message>
-    <message>
-        <source>Download Manually</source>
-        <translation>手动下载</translation>
-    </message>
-    <message>
-        <source>If the download is slow or fails, you can:</source>
-        <translation>如果下载缓慢或失败，您可以：</translation>
-    </message>
-</context>
-<context>
-    <name>Gui::DownloadWindow</name>
-    <message>
-        <source>Oops, an error occurred during the automatic update.
-Please download and install the new version manually.</source>
-        <translation>哎呀，在自动更新时发生了一个错误。
-请手动下载安装新版本。</translation>
-    </message>
-</context>
-<context>
     <name>Gui::MainWindow</name>
-    <message>
-        <source>Change log:</source>
-        <translation>变更日志：</translation>
-    </message>
-    <message>
-        <source>Hey! I found a new version available!
-
-Current version: %1
-Latest version: %2%3</source>
-        <translation>嗨！我发现了一个可用的新版本！
-
-当前版本：%1
-最新版本：%2%3</translation>
-    </message>
     <message>
         <source>Bind to AirPods</source>
         <translation>绑定到 AirPods</translation>
